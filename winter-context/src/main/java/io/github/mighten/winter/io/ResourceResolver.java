@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import io.github.mighten.winter.io.entities.ResourceEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ public class ResourceResolver {
      * @param <R>
      * @return
      */
-    public <R> List<R> scan(Function<Resource, R> mapper) {
+    public <R> List<R> scan(Function<ResourceEntity, R> mapper) {
         String basePackagePath = this.basePackage.replace(".", "/");
         String path = basePackagePath;
         try {
@@ -67,7 +68,7 @@ public class ResourceResolver {
      * @throws IOException
      * @throws URISyntaxException
      */
-    <R> void triage(String basePackagePath, String path, List<R> collector, Function<Resource, R> mapper) throws IOException, URISyntaxException {
+    <R> void triage(String basePackagePath, String path, List<R> collector, Function<ResourceEntity, R> mapper) throws IOException, URISyntaxException {
         logger.atDebug().log("scan path: {}", path);
         Enumeration<URL> en = getContextClassLoader().getResources(path);
         while (en.hasMoreElements()) {
@@ -123,17 +124,17 @@ public class ResourceResolver {
      * @param mapper
      * @throws IOException
      */
-    <R> void scanFile(boolean isJar, String base, Path root, List<R> collector, Function<Resource, R> mapper) throws IOException {
+    <R> void scanFile(boolean isJar, String base, Path root, List<R> collector, Function<ResourceEntity, R> mapper) throws IOException {
         String baseDir = removeTrailingSlash(base);
         Files.walk(root).filter(Files::isRegularFile).forEach(file -> {
-            Resource resource = null;
+            ResourceEntity resource = null;
 
             if (isJar) {
-                resource = new Resource(baseDir, removeLeadingSlash(file.toString()));
+                resource = new ResourceEntity(baseDir, removeLeadingSlash(file.toString()));
             } else {
                 String path = file.toString();
                 String name = removeLeadingSlash(path.substring(baseDir.length()));
-                resource = new Resource("file:" + path, name);
+                resource = new ResourceEntity("file:" + path, name);
             }
 
             logger.atDebug().log("found resource: {}", resource);
